@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QWER</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+</head>
+<body>
+    <div class="container">
+       <div class="col">
+        <label for="nombre">Nombre</label>
+        <input type="text" id="nombre" class="form-control">
+        <label for="error" style="display: none;" id="nom-error" class="text text-danger" >DEBE RELLENAR EL ESPACIO</label>
+       </div>
+       <div class="col mb-2">
+        <label for="Apellido">Apellido</label>
+        <input type="text" id="Apellido" class="form-control">
+        <label for="error2" style="display: none;" class="text text-danger" id="ape-error">DEBE RELLENAR EL ESPACIO</label>
+       </div>
+       <div class="col mb-2">
+        <label for="bias">Bias</label>
+        <select name="bias" id="bias"></select>
+        <label for="error3" style="display: none;" id="select-error" class="text text-danger">DEBE SELECCIONAR UNA DE LAS OPCIONES</label>
+       </div>
+       <div class="col mb-2">
+        <label for="checkbox">Mayor de edad</label>
+        <input type="checkbox" id="checkbox" >
+       </div>
+       <div class="d-grid gap-2">
+        <button type="button" class="btn btn-info btn-block"> Guardar</button>
+       </div>
+       <table class="table table-fixed">
+        <thead>
+            <tr>
+                <th>nombre</th>
+                <th>apellido</th>
+                <th>mayor de edad</th>
+                <th>bias</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpo_tabla">
+
+        </tbody>
+       </table>
+    </div>
+    <script>
+        const nom = document.getElementById("nombre")
+        const ape = document.getElementById("Apellido")
+        const btn= document.querySelector(".btn")
+        const selector= document.getElementById("bias")
+        const errorselect= document.querySelector("#select-error")
+        const errorNom = document.querySelector("#nom-error")
+        const errorApe=document.querySelector("#ape-error")
+        const tabla = document.getElementById("cuerpo_tabla")
+        const check= document.getElementById("checkbox")
+
+        const members = [
+            {id:-1,Nombre:"NO SELECCIONADO"},
+            {id:1,Nombre:"Chodan"},
+            {id:2,Nombre:"Magenta"},
+            {id:3,Nombre:"Siyeon"},
+            {id:4,Nombre:"Hina"}]
+        
+        members.forEach(member => {
+            const option = document.createElement("option")
+            option.value= member.id
+            option.innerText= member.Nombre
+            selector.appendChild(option)
+        });
+        selector.addEventListener("change", function(){
+            if (selector.value<1) {
+                errorselect.style.display="block"
+            }else{
+                errorselect.style.display="none"
+            }
+        })
+        nom.addEventListener("blur",function () {
+            if (nom.value === ""){
+                errorNom.style.display="block"
+                nom.style.border = "2px solid red"
+            }else {errorNom.style.display="none"
+            nom.style.border = "2px solid green"
+            }
+        })
+        ape.addEventListener("blur",function(){
+            if(ape.value === ""){
+                errorApe.style.display="block"
+                ape.style.border="2px solid red"
+            }else{
+                errorApe.style.display="none"
+                ape.style.border="2px solid green"
+            }   
+        })
+        function guardarDatos(){
+            const data = JSON.parse(localStorage.getItem("datos")) || []
+            tabla.innerHTML=""
+
+            data.forEach((datos,index) => {
+                const fila = document.createElement("tr")
+                fila.setAttribute("data-index",index)
+                
+                const tdNom = document.createElement("td")
+                tdNom.innerText=datos.nombre
+
+                const tdApe = document.createElement("td")
+                tdApe.innerText=datos.apellido
+
+                const tdSelect = document.createElement("td")
+                tdSelect.innerText = datos.bias
+                
+
+                const tdMayor = document.createElement("td")
+                if (datos.mayor === false ){
+                    tdMayor.innerText= "NO"
+                }else{
+                    tdMayor.innerText= "SI"}
+
+                const btnBorrar = document.createElement("button")
+                btnBorrar.innerText = " Borrar "
+                btnBorrar.className ="btn btn-danger btn-sm";
+                btnBorrar.addEventListener("click",function () {
+                    const index= fila.getAttribute("data-index")
+                    borrar(index)
+                    
+                })
+                tabla.appendChild(fila)
+                fila.appendChild(tdNom) 
+                fila.appendChild(tdApe) 
+                fila.appendChild(tdMayor)
+                fila.appendChild(tdSelect) 
+                fila.appendChild(btnBorrar)  
+
+              
+
+        });
+        
+    }
+    function reiniciarDatos() {
+                nom.value=""
+                ape.value=""
+                selector.value=-1
+                check.checked=false
+                errorselect.style.display="none"
+                errorApe.style.display="none"
+                errorNom.style.display="none"
+    }
+
+    function borrar(index){
+        var data =JSON.parse(localStorage.getItem("datos")) || []
+        data.splice(index,1);
+        localStorage.setItem("datos",JSON.stringify(data))
+        guardarDatos()
+    }
+
+    window.addEventListener("load",function(){
+        guardarDatos()
+    })
+
+    btn.addEventListener("click",function(){
+        if(nom.value ==="" ||ape.value===""||selector.value<0){
+            alert("DEBE RELLENAR TODOS LOS CAMPOS")
+        }
+        else{
+            const datos = {
+                "nombre":nom.value,
+                "apellido":ape.value,
+                "bias":selector.options[selector.selectedIndex].innerText,
+                "mayor": checkbox.checked
+            }
+            const data= JSON.parse(localStorage.getItem("datos")) || []
+            data.push(datos)
+
+            localStorage.setItem("datos",JSON.stringify(data))
+            tabla.innerHTML = ""
+
+            guardarDatos()
+            reiniciarDatos()
+        }
+        
+    })
+    </script>
+</body>
+</html>
